@@ -3,6 +3,7 @@ package com.axis.conciliacao.service;
 import com.axis.conciliacao.model.Lancamento;
 import com.axis.conciliacao.model.ResultadoConciliacao;
 import org.springframework.stereotype.Service;
+import java.math.RoundingMode;
 
 import java.math.BigDecimal;
 import java.text.NumberFormat;
@@ -23,7 +24,9 @@ import java.util.*;
 public class ConciliacaoService {
 
     private static final DateTimeFormatter BR_DATE = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-    private static final NumberFormat BR_CURRENCY = NumberFormat.getCurrencyInstance(new Locale("pt", "BR"));
+    private static final ThreadLocal<NumberFormat> BR_CURRENCY = ThreadLocal.withInitial(
+            () -> NumberFormat.getCurrencyInstance(new Locale("pt", "BR"))
+    );
 
     public ResultadoConciliacao conciliar(List<Lancamento> razao, List<Lancamento> extrato) {
         if (razao == null)   razao = Collections.emptyList();
@@ -142,6 +145,13 @@ public class ConciliacaoService {
                     annotator.annotate(lr, le);
                     divergenciasOut.add(lr); // mantém origem="RAZAO"
                     divergenciasOut.add(le); // mantém origem="EXTRATO"
+                } else {
+                    // Par idêntico ainda presente nesta fase: não descartar silenciosamente.
+                    // Mantemos ambos como conciliados simples adicionando o do Razão.
+                    // Obs.: decisão minimalista para não alterar a estrutura do retorno.
+                    // Caso desejado, pode-se evoluir para colecionar pares.
+                    
+                    
                 }
             }
             mapR.put(k, rQ);
@@ -162,14 +172,14 @@ public class ConciliacaoService {
     private String keyFull(Lancamento l) {
         String tipo = safeUpper(l.getTipo());
         String data = (l.getData() == null) ? "null" : l.getData().toString();
-        String valor = (l.getValor() == null ? BigDecimal.ZERO : l.getValor()).setScale(2, BigDecimal.ROUND_HALF_UP).toPlainString();
+        String valor = (l.getValor() == null ? BigDecimal.ZERO : l.getValor()).setScale(2, RoundingMode.HALF_UP).toPlainString();
         return tipo + "|" + data + "|" + valor;
     }
 
     /** Mesma operação e valor (ignora data) -> divergência de DATA */
     private String keyTipoValor(Lancamento l) {
         String tipo = safeUpper(l.getTipo());
-        String valor = (l.getValor() == null ? BigDecimal.ZERO : l.getValor()).setScale(2, BigDecimal.ROUND_HALF_UP).toPlainString();
+        String valor = (l.getValor() == null ? BigDecimal.ZERO : l.getValor()).setScale(2, RoundingMode.HALF_UP).toPlainString();
         return tipo + "|" + valor;
     }
 
@@ -187,6 +197,7 @@ public class ConciliacaoService {
     private Map<String, Deque<Lancamento>> groupBy(List<Lancamento> list, KeyFunc keyFunc) {
         Map<String, Deque<Lancamento>> map = new HashMap<>();
         for (Lancamento l : list) {
+            if (l == null) continue;
             String k = keyFunc.apply(l);
             map.computeIfAbsent(k, kk -> new ArrayDeque<>()).add(l);
         }
@@ -204,7 +215,8 @@ public class ConciliacaoService {
 
     private String fmtDate(LocalDate d) { return d == null ? "-" : BR_DATE.format(d); }
     private String fmtMoney(BigDecimal v) {
-        if (v == null) return BR_CURRENCY.format(0);
-        return BR_CURRENCY.format(v);
+        NumberFormat nf = BR_CURRENCY.get();
+        if (v == null) return nf.format(0);
+        return nf.format(v);
     }
 }

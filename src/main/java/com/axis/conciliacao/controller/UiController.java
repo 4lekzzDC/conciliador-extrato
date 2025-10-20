@@ -3,6 +3,8 @@ package com.axis.conciliacao.controller;
 import com.axis.conciliacao.model.ResultadoConciliacao;
 import com.axis.conciliacao.service.ConciliacaoService;
 import com.axis.conciliacao.utils.ExcelReader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -18,6 +20,8 @@ import java.io.InputStream;
  */
 @Controller
 public class UiController {
+
+    private static final Logger log = LoggerFactory.getLogger(UiController.class);
 
     private final ExcelReader excelReader;
     private final ConciliacaoService conciliacaoService;
@@ -45,6 +49,14 @@ public class UiController {
 
         ModelAndView mv = new ModelAndView();
 
+        // Validação básica dos arquivos enviados
+        String erroValidacao = validarArquivos(razao, extrato);
+        if (erroValidacao != null) {
+            mv.setViewName("ui_error");
+            mv.addObject("mensagem", erroValidacao);
+            return mv;
+        }
+
         try (
             InputStream inRazao = razao.getInputStream();
             InputStream inExtrato = extrato.getInputStream()
@@ -58,18 +70,53 @@ public class UiController {
 
             // Retorna o resultado para o template de exibição
             mv.setViewName("ui_result_modes");
-            mv.addObject("resultadoConciliacao", resultado); // ✅ Corrigido
+            mv.addObject("resultadoConciliacao", resultado);
             mv.addObject("mostrarOk", mostrarOk);
             return mv;
 
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Falha ao processar conciliacao: razao={}, extrato={}, msg={}",
+                    safeName(razao), safeName(extrato), e.getMessage(), e);
 
             mv.setViewName("ui_error");
             mv.addObject("mensagem",
-                "❌ Ocorreu um erro ao processar os arquivos. Verifique o formato e tente novamente.<br><br>"
-                + "<small>Detalhes técnicos: " + e.getMessage() + "</small>");
+                "Ocorreu um erro ao processar os arquivos. Verifique o formato e tente novamente.");
             return mv;
         }
+    }
+
+    private String validarArquivos(MultipartFile razao, MultipartFile extrato) {
+        if (razao == null || razao.isEmpty()) {
+            return "Arquivo Razão não enviado ou vazio.";
+        }
+        if (extrato == null || extrato.isEmpty()) {
+            return "Arquivo Extrato não enviado ou vazio.";
+        }
+        if (!isExcelFile(razao)) {
+            return "Arquivo Razão não é um Excel válido (.xls ou .xlsx).";
+        }
+        if (!isExcelFile(extrato)) {
+            return "Arquivo Extrato não é um Excel válido (.xls ou .xlsx).";
+        }
+        return null;
+    }
+
+    private boolean isExcelFile(MultipartFile f) {
+        try {
+            String name = safeName(f);
+            String lower = name == null ? "" : name.toLowerCase();
+            if (lower.endsWith(".xlsx") || lower.endsWith(".xls")) return true;
+            String ct = f.getContentType();
+            if (ct == null) return false;
+            ct = ct.toLowerCase();
+            return ct.contains("spreadsheetml") || ct.contains("excel");
+        } catch (Exception ignore) {
+            return false;
+        }
+    }
+
+    private String safeName(MultipartFile f) {
+        if (f == null) return null;
+        try { return f.getOriginalFilename(); } catch (Exception e) { return null; }
     }
 }

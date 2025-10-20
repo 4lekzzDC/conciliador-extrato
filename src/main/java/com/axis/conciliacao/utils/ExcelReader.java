@@ -3,6 +3,7 @@ package com.axis.conciliacao.utils;
 import com.axis.conciliacao.model.Lancamento;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.ss.util.NumberToTextConverter;
 
 import java.io.IOException;
@@ -49,7 +50,7 @@ public class ExcelReader {
 
             // Mapeia colunas pelo texto do cabeçalho
             Row header = sheet.getRow(headerRowIdx);
-            Map<String, Integer> cols = mapColumns(header);
+            Map<String, Integer> cols = mapColumns(sheet, headerRowIdx);
 
             // Tenta localizar colunas de interesse (por nome aproximado)
             int colData = findCol(cols, "data");
@@ -106,7 +107,7 @@ public class ExcelReader {
             }
 
             Row header = sheet.getRow(headerRowIdx);
-            Map<String, Integer> cols = mapColumns(header);
+            Map<String, Integer> cols = mapColumns(sheet, headerRowIdx);
 
             int colData = findCol(cols, "data");
             int colDesc = findCol(cols, "fornecedor", "cliente", "hist", "descricao", "descrição");
@@ -197,6 +198,40 @@ public class ExcelReader {
         return out;
     }
 
+    /** Variante que considera merges e preserva a ordem esquerda→direita. */
+    private Map<String, Integer> mapColumns(Sheet sheet, int headerRowIdx) {
+        Map<String, Integer> out = new LinkedHashMap<>();
+        if (sheet == null) return out;
+        Row header = sheet.getRow(headerRowIdx);
+        if (header == null) return out;
+        for (int c = 0; c < header.getLastCellNum(); c++) {
+            String txt = getHeaderTextAt(sheet, headerRowIdx, c);
+            String key = normalize(txt);
+            if (!key.isEmpty()) out.putIfAbsent(key, c);
+        }
+        return out;
+    }
+
+    private String getHeaderTextAt(Sheet sheet, int rowIdx, int colIdx) {
+        if (sheet == null) return "";
+        Row row = sheet.getRow(rowIdx);
+        if (row == null) return "";
+        Cell cell = row.getCell(colIdx);
+        String base = getString(cell);
+        if (base != null && !base.trim().isEmpty()) return base;
+        int mergedCount = sheet.getNumMergedRegions();
+        for (int i = 0; i < mergedCount; i++) {
+            CellRangeAddress rng = sheet.getMergedRegion(i);
+            if (rng != null && rng.isInRange(rowIdx, colIdx)) {
+                Row topRow = sheet.getRow(rng.getFirstRow());
+                if (topRow == null) return "";
+                Cell topLeft = topRow.getCell(rng.getFirstColumn());
+                return getString(topLeft);
+            }
+        }
+        return "";
+    }
+
     /** Encontra a coluna cujo cabeçalho contenha qualquer um dos termos fornecidos. */
     private int findCol(Map<String, Integer> cols, String... wants) {
         for (String want : wants) {
@@ -210,15 +245,23 @@ public class ExcelReader {
         return -1;
     }
 
-    /** Variante: varre o header para achar a primeira coluna que contenha o termo. */
+    /** Variante: varre o header para achar a primeira coluna que contenha o termo (considera merges). */
     private int findColApprox(Row header, int headerRowIdx, String wantTerm) {
         String w = normalize(wantTerm);
         if (header == null) return -1;
+        Sheet sheet = header.getSheet();
         for (int c = 0; c < header.getLastCellNum(); c++) {
-            String key = normalize(getString(header.getCell(c)));
+            String key = normalize(getHeaderTextAt(sheet, headerRowIdx, c));
             if (key.contains(w)) return c;
         }
         return -1;
+    }
+
+    /** Sobrecarga que recebe o sheet diretamente. */
+    private int findColApprox(Sheet sheet, int headerRowIdx, String wantTerm) {
+        if (sheet == null) return -1;
+        Row header = sheet.getRow(headerRowIdx);
+        return findColApprox(header, headerRowIdx, wantTerm);
     }
 
     private String concatRange(Row row, int fromCol, int toCol) {

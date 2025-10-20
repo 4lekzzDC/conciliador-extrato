@@ -1,188 +1,117 @@
+<!-- templates/ui_result.html -->
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="pt-BR">
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8"/>
   <title>Resultado da Conciliação</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" th:href="@{/css/dark.css}"/>
 </head>
-<body class="min-h-screen bg-[#0b0f17] text-gray-200 font-[Inter]">
+<body style="background:var(--bg); color:var(--text);">
+  <main style="max-width:1200px; margin:0 auto; padding:2rem 1rem;">
 
-  <!-- HEADER -->
-  <header class="py-6 mb-6 border-b border-gray-700/50 text-center">
-    <div class="flex items-center justify-center space-x-4">
-      <img th:src="@{/img/logo-itamarathy.png}" alt="Logo Itamarathy" class="h-10" />
-      <h1 class="text-3xl font-semibold text-white">Resultado da Conciliação</h1>
-    </div>
-  </header>
+    <!-- Header e chips -->
+    <header style="text-align:center; margin-bottom:1rem;">
+      <h1>Resultado da Conciliação</h1>
+      <div style="margin-top:1rem; display:flex; gap:.5rem; justify-content:center; flex-wrap:wrap;">
+        <span class="chip">Conciliado</span>
+        <span class="chip" style="background:rgba(239,68,68,.15); color:#fecaca;">Divergência</span>
+        <span class="chip" style="background:rgba(234,179,8,.15); color:#fde68a;">Somente no Razão</span>
+        <span class="chip" style="background:rgba(37,99,235,.15); color:#bfdbfe;">Somente no Extrato</span>
+        <span class="chip">Razão: <b th:text="${#lists.size(resultado?.somenteNoRazao)}">0</b></span>
+        <span class="chip">Extrato: <b th:text="${#lists.size(resultado?.somenteNoExtrato)}">0</b></span>
+        <span class="chip">Divergências: <b th:text="${#lists.size(resultado?.divergencias)}">0</b></span>
+      </div>
+    </header>
 
-  <main class="container mx-auto px-6 pb-12">
+    <!-- Controles de modo -->
+    <section style="text-align:center; margin-bottom:1rem;" class="btn-group">
+      <button class="btn" data-modo="duascolunas">Colunas</button>
+      <button class="btn ghost" data-modo="abas">Abas</button>
+      <button class="btn ghost" data-modo="comparativo">Comparativo</button>
+      <a class="btn ghost" th:href="@{/ui}" style="margin-left:1rem;">Nova Conciliação</a>
+    </section>
 
-    <!-- LEGENDA -->
-    <div class="flex flex-wrap justify-center gap-3 mb-4 text-sm">
-      <span class="px-3 py-1 rounded-full bg-green-700/40 border border-green-600/40">Conciliado</span>
-      <span class="px-3 py-1 rounded-full bg-red-700/40 border border-red-600/40">Divergência</span>
-      <span class="px-3 py-1 rounded-full bg-yellow-700/40 border border-yellow-600/40">Somente no Razão</span>
-      <span class="px-3 py-1 rounded-full bg-blue-700/40 border border-blue-600/40">Somente no Extrato</span>
-    </div>
+    <!-- Modo atual vindo do controller -->
+    <input type="hidden" id="modoServidor" th:value="${modo}"/>
 
-    <!-- CONTADORES -->
-    <div class="flex flex-wrap justify-center gap-3 mb-8 text-sm">
-      <span class="px-3 py-1 rounded-full bg-white/5 border border-gray-700/50">Razão:
-        <b th:text="${#lists.size(resultadoConciliacao.somenteNoRazao)}">0</b></span>
-      <span class="px-3 py-1 rounded-full bg-white/5 border border-gray-700/50">Extrato:
-        <b th:text="${#lists.size(resultadoConciliacao.somenteNoExtrato)}">0</b></span>
-      <span class="px-3 py-1 rounded-full bg-white/5 border border-gray-700/50">Divergências:
-        <b th:text="${#lists.size(resultadoConciliacao.divergencias)}">0</b></span>
-    </div>
+    <!-- =================== DUAS COLUNAS =================== -->
+    <section id="view-duascolunas" style="display:none;">
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+        <div th:replace="fragments/tabelas :: tabelaPadrao('Somente no Razão', ${resultado?.somenteNoRazao})"></div>
+        <div th:replace="fragments/tabelas :: tabelaPadrao('Somente no Extrato', ${resultado?.somenteNoExtrato})"></div>
+      </div>
+      <div style="margin-top:1rem;"
+           th:replace="fragments/tabelas :: tabelaDivergencias(${resultado?.divergencias})"></div>
+    </section>
 
-    <!-- BOTÕES DE MODO -->
-    <div class="flex justify-center gap-4 mb-10">
-      <button class="mode-btn bg-blue-600 hover:bg-blue-500 text-white py-2 px-6 rounded-full" data-mode="colunas">Colunas</button>
-      <button class="mode-btn bg-blue-600 hover:bg-blue-500 text-white py-2 px-6 rounded-full" data-mode="abas">Abas</button>
-      <button class="mode-btn bg-blue-600 hover:bg-blue-500 text-white py-2 px-6 rounded-full" data-mode="comparativo">Comparativo</button>
-    </div>
-
-    <!-- MODO COLUNAS -->
-    <section id="colunas" class="mode-view">
-      <div class="grid gap-8 lg:grid-cols-3 md:grid-cols-2 grid-cols-1">
-
-        <!-- Somente no Razão -->
-        <div>
-          <h2 class="text-xl font-semibold mb-3 text-blue-400 text-center">Somente no Razão</h2>
-          <div class="bg-white/5 rounded-xl p-4 border border-gray-700/50 shadow-sm">
-            <table class="w-full text-sm border-collapse">
-              <thead class="border-b border-gray-600/40">
-                <tr class="text-gray-300 uppercase tracking-wider text-[13px]">
-                  <th class="py-2 px-2 text-center font-medium">Operação</th>
-                  <th class="py-2 px-2 text-center font-medium">Data</th>
-                  <th class="py-2 px-2 text-center font-medium">Valor</th>
-                  <th class="py-2 px-2 text-center font-medium">Descrição</th>
-                </tr>
-              </thead>
-
-              <tbody th:if="${#lists.isEmpty(resultadoConciliacao.somenteNoRazao)}">
-                <tr>
-                  <td colspan="4" class="py-6 text-center text-gray-400">Sem itens.</td>
-                </tr>
-              </tbody>
-
-              <tbody th:unless="${#lists.isEmpty(resultadoConciliacao.somenteNoRazao)}">
-                <tr th:each="l : ${resultadoConciliacao.somenteNoRazao}"
-                    class="hover:bg-blue-500/10 transition-colors duration-200 border-b border-gray-700/20">
-                  <td th:text="${l.tipo}" class="py-2 px-2 text-center"></td>
-                  <td th:text="${#temporals.format(l.data, 'dd/MM/yyyy')}" class="text-center"></td>
-                  <td th:text="${#numbers.formatCurrency(l.valor)}" class="text-center"></td>
-                  <td th:text="${l.descricao}" class="px-2 text-left"></td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+    <!-- =================== ABAS =================== -->
+    <section id="view-abas" style="display:none;">
+      <div class="card" style="padding:1rem;">
+        <div style="display:flex; gap:.5rem; margin-bottom:.75rem;">
+          <button class="btn tab-btn" data-tab="aba-razao">Razão</button>
+          <button class="btn ghost tab-btn" data-tab="aba-extrato">Extrato</button>
+          <button class="btn ghost tab-btn" data-tab="aba-div">Divergências</button>
         </div>
-
-        <!-- Somente no Extrato -->
-        <div>
-          <h2 class="text-xl font-semibold mb-3 text-blue-400 text-center">Somente no Extrato</h2>
-          <div class="bg-white/5 rounded-xl p-4 border border-gray-700/50 shadow-sm">
-            <table class="w-full text-sm border-collapse">
-              <thead class="border-b border-gray-600/40">
-                <tr class="text-gray-300 uppercase tracking-wider text-[13px]">
-                  <th class="py-2 px-2 text-center font-medium">Operação</th>
-                  <th class="py-2 px-2 text-center font-medium">Data</th>
-                  <th class="py-2 px-2 text-center font-medium">Valor</th>
-                  <th class="py-2 px-2 text-center font-medium">Descrição</th>
-                </tr>
-              </thead>
-
-              <tbody th:if="${#lists.isEmpty(resultadoConciliacao.somenteNoExtrato)}">
-                <tr>
-                  <td colspan="4" class="py-6 text-center text-gray-400">Sem itens.</td>
-                </tr>
-              </tbody>
-
-              <tbody th:unless="${#lists.isEmpty(resultadoConciliacao.somenteNoExtrato)}">
-                <tr th:each="l : ${resultadoConciliacao.somenteNoExtrato}"
-                    class="hover:bg-blue-500/10 transition-colors duration-200 border-b border-gray-700/20">
-                  <td th:text="${l.tipo}" class="py-2 px-2 text-center"></td>
-                  <td th:text="${#temporals.format(l.data, 'dd/MM/yyyy')}" class="text-center"></td>
-                  <td th:text="${#numbers.formatCurrency(l.valor)}" class="text-center"></td>
-                  <td th:text="${l.descricao}" class="px-2 text-left"></td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+        <div id="aba-razao" class="tab-pane">
+          <div th:replace="fragments/tabelas :: tabelaPadrao('Somente no Razão', ${resultado?.somenteNoRazao})"></div>
         </div>
-
-        <!-- Divergências -->
-        <div>
-          <h2 class="text-xl font-semibold mb-3 text-red-400 text-center">Divergências</h2>
-          <div class="bg-white/5 rounded-xl p-4 border border-gray-700/50 shadow-sm">
-            <table class="w-full text-sm border-collapse">
-              <thead class="border-b border-gray-600/40">
-                <tr class="text-gray-300 uppercase tracking-wider text-[13px]">
-                  <th class="py-2 px-2 text-center font-medium">Origem</th>
-                  <th class="py-2 px-2 text-center font-medium">Operação</th>
-                  <th class="py-2 px-2 text-center font-medium">Data</th>
-                  <th class="py-2 px-2 text-center font-medium">Valor</th>
-                  <th class="py-2 px-2 text-center font-medium">Descrição</th>
-                </tr>
-              </thead>
-
-              <tbody th:if="${#lists.isEmpty(resultadoConciliacao.divergencias)}">
-                <tr>
-                  <td colspan="5" class="py-6 text-center text-gray-400">Sem divergências.</td>
-                </tr>
-              </tbody>
-
-              <tbody th:unless="${#lists.isEmpty(resultadoConciliacao.divergencias)}">
-                <tr th:each="l : ${resultadoConciliacao.divergencias}"
-                    th:title="${l.observacao}"
-                    class="hover:bg-red-500/10 transition-colors duration-200 border-b border-gray-700/20">
-                  <td th:text="${l.origem}" class="py-2 px-2 text-center text-red-300 font-semibold"></td>
-                  <td th:text="${l.tipo}" class="py-2 px-2 text-center"></td>
-                  <td th:text="${#temporals.format(l.data, 'dd/MM/yyyy')}" class="text-center"></td>
-                  <td th:text="${#numbers.formatCurrency(l.valor)}" class="text-center"></td>
-                  <td th:text="${l.descricao}" class="px-2 text-left"></td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+        <div id="aba-extrato" class="tab-pane" style="display:none;">
+          <div th:replace="fragments/tabelas :: tabelaPadrao('Somente no Extrato', ${resultado?.somenteNoExtrato})"></div>
         </div>
-
+        <div id="aba-div" class="tab-pane" style="display:none;">
+          <div th:replace="fragments/tabelas :: tabelaDivergencias(${resultado?.divergencias})"></div>
+        </div>
       </div>
     </section>
 
-    <!-- Botão Voltar -->
-    <div class="flex justify-center mt-12">
-      <a th:href="@{/ui}" class="bg-gray-700 hover:bg-gray-600 text-white py-3 px-10 rounded-full transition">
-        Nova Conciliação
-      </a>
-    </div>
+    <!-- =================== COMPARATIVO =================== -->
+    <section id="view-comparativo" style="display:none;">
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+        <div th:replace="fragments/tabelas :: tabelaPadrao('Somente no Razão', ${resultado?.somenteNoRazao})"></div>
+        <div th:replace="fragments/tabelas :: tabelaPadrao('Somente no Extrato', ${resultado?.somenteNoExtrato})"></div>
+      </div>
+      <div style="margin-top:1rem;"
+           th:replace="fragments/tabelas :: tabelaDivergencias(${resultado?.divergencias})"></div>
+    </section>
+
   </main>
 
-  <footer class="mt-10 text-gray-500 text-sm text-center">
-    © <span th:text="${#temporals.format(#temporals.createNow(), 'yyyy')}"></span> Itamarathy Contabilidade
-  </footer>
-
   <script>
-    const modes = document.querySelectorAll('.mode-view');
-    const modeBtns = document.querySelectorAll('.mode-btn');
-    const tabs = document.querySelectorAll('.tab-view');
-    const tabBtns = document.querySelectorAll('.tab-btn');
+    // Seleção de modo (garante que Abas/Comparativo SEMPRE mostram os mesmos dados)
+    (function(){
+      const serverMode = (document.getElementById('modoServidor')?.value || 'duascolunas');
+      const views = {
+        duascolunas: document.getElementById('view-duascolunas'),
+        abas:        document.getElementById('view-abas'),
+        comparativo: document.getElementById('view-comparativo')
+      };
 
-    modeBtns.forEach(btn => btn.addEventListener('click', () => {
-      modes.forEach(m => m.classList.add('hidden'));
-      document.getElementById(btn.dataset.mode).classList.remove('hidden');
-      modeBtns.forEach(b => b.classList.remove('bg-blue-700'));
-      btn.classList.add('bg-blue-700');
-    }));
+      function setMode(m){
+        for(const k in views){ views[k].style.display = (k===m) ? 'block' : 'none'; }
+        // estiliza botões
+        document.querySelectorAll('[data-modo]').forEach(b=>{
+          if(b.dataset.modo===m){ b.classList.remove('ghost'); }
+          else{ b.classList.add('ghost'); }
+        });
+      }
 
-    tabBtns.forEach(btn => btn.addEventListener('click', () => {
-      tabs.forEach(t => t.classList.add('hidden'));
-      document.getElementById('tab-' + btn.dataset.tab).classList.remove('hidden');
-      tabBtns.forEach(b => b.classList.remove('bg-blue-600'));
-      btn.classList.add('bg-blue-600');
-    }));
+      setMode(serverMode);
+
+      document.querySelectorAll('[data-modo]').forEach(btn=>{
+        btn.addEventListener('click', ()=> setMode(btn.dataset.modo));
+      });
+
+      // tabs
+      document.querySelectorAll('.tab-btn').forEach(btn=>{
+        btn.addEventListener('click', ()=>{
+          const tab = btn.dataset.tab;
+          document.querySelectorAll('.tab-pane').forEach(p=>p.style.display='none');
+          document.getElementById(tab).style.display = 'block';
+          document.querySelectorAll('.tab-btn').forEach(b=>b.classList.add('ghost'));
+          btn.classList.remove('ghost');
+        });
+      });
+    })();
   </script>
 </body>
 </html>

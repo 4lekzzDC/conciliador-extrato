@@ -1,117 +1,273 @@
-<!-- templates/ui_result.html -->
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="UTF-8"/>
-  <title>Resultado da Conciliação</title>
-  <link rel="stylesheet" th:href="@{/css/dark.css}"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Conciliação — Resultado</title>
+  <style>
+    :root{color-scheme:dark light}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,'Helvetica Neue',Arial,'Noto Sans',sans-serif;background:#0b0f14;color:#e6edf3}
+    .container{max-width:1120px;margin:24px auto;padding:0 16px}
+    .card{background:#0f1620;border:1px solid #223043;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+    .p-16{padding:16px}.p-24{padding:24px}.mt-16{margin-top:16px}.mb-8{margin-bottom:8px}.mb-16{margin-bottom:16px}
+    .row{display:grid;gap:16px}.cols-2{grid-template-columns:1fr 1fr}
+    .muted{color:#9fb0c0}.danger{background:#2b1517;border-color:#5b1e23}
+    .chip{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border-radius:999px;background:#121a23;border:1px solid #223043;font-size:12px}
+    .chip .dot{width:8px;height:8px;border-radius:50%}.dot-ok{background:#1aa77a}.dot-warn{background:#e0a23c}.dot-bad{background:#d35454}
+    .table{width:100%;border-collapse:collapse}
+    .table th,.table td{padding:10px 12px;border-bottom:1px solid #1e2934;vertical-align:top}
+    .table th{font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:#9fb0c0}
+    .table tr.only{background:linear-gradient(180deg,rgba(211,84,84,.07),transparent)}
+    .table tr.div{background:linear-gradient(180deg,rgba(224,162,60,.08),transparent)}
+    .badge{font-size:11px;border:1px solid #223043;background:#0f1620;border-radius:8px;padding:2px 6px;color:#9fb0c0}
+    .tabs{display:flex;gap:8px;flex-wrap:wrap}
+    .tab{padding:8px 12px;border-radius:10px;border:1px solid #223043;background:#101824;cursor:pointer}
+    .tab[aria-selected="true"]{background:#152233}
+    .grid-cards{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+    a.btn{display:inline-block;background:#142132;border:1px solid #223043;border-radius:10px;padding:10px 14px;color:#e6edf3;text-decoration:none}
+    input[type="checkbox"]{accent-color:#1aa77a}.right{float:right}
+  </style>
 </head>
-<body style="background:var(--bg); color:var(--text);">
-  <main style="max-width:1200px; margin:0 auto; padding:2rem 1rem;">
+<body>
+<div class="container">
+  <div class="card p-24">
+    <header class="mb-16" style="width:100%;">
+      <h1 style="margin:0;">Resultado da Conciliação</h1>
+      <p class="muted mb-16">Modo: <span th:text="${modo}">duascolunas</span></p>
 
-    <!-- Header e chips -->
-    <header style="text-align:center; margin-bottom:1rem;">
-      <h1>Resultado da Conciliação</h1>
-      <div style="margin-top:1rem; display:flex; gap:.5rem; justify-content:center; flex-wrap:wrap;">
-        <span class="chip">Conciliado</span>
-        <span class="chip" style="background:rgba(239,68,68,.15); color:#fecaca;">Divergência</span>
-        <span class="chip" style="background:rgba(234,179,8,.15); color:#fde68a;">Somente no Razão</span>
-        <span class="chip" style="background:rgba(37,99,235,.15); color:#bfdbfe;">Somente no Extrato</span>
-        <span class="chip">Razão: <b th:text="${#lists.size(resultado?.somenteNoRazao)}">0</b></span>
-        <span class="chip">Extrato: <b th:text="${#lists.size(resultado?.somenteNoExtrato)}">0</b></span>
-        <span class="chip">Divergências: <b th:text="${#lists.size(resultado?.divergencias)}">0</b></span>
+      <div class="row" style="grid-template-columns:1fr auto;align-items:center;">
+        <div class="row" style="grid-template-columns:repeat(4,auto);gap:8px;">
+          <span class="chip"><span class="dot dot-ok"></span> Conciliados: <strong th:text="${qConc}">0</strong></span>
+          <span class="chip"><span class="dot dot-warn"></span> Divergências: <strong th:text="${qDiverg}">0</strong></span>
+          <span class="chip"><span class="dot dot-bad"></span> Só no Razão: <strong th:text="${qSomRazao}">0</strong></span>
+          <span class="chip"><span class="dot dot-bad"></span> Só no Extrato: <strong th:text="${qSomExtrato}">0</strong></span>
+        </div>
+        <div class="right">
+          <a class="btn" th:href="@{/ui}">Nova conciliação</a>
+        </div>
       </div>
     </header>
 
-    <!-- Controles de modo -->
-    <section style="text-align:center; margin-bottom:1rem;" class="btn-group">
-      <button class="btn" data-modo="duascolunas">Colunas</button>
-      <button class="btn ghost" data-modo="abas">Abas</button>
-      <button class="btn ghost" data-modo="comparativo">Comparativo</button>
-      <a class="btn ghost" th:href="@{/ui}" style="margin-left:1rem;">Nova Conciliação</a>
-    </section>
+    <div class="mb-16" style="width:100%;">
+      <label>
+        <input id="toggle-ok" type="checkbox" th:checked="${mostrarOk}"/>
+        Mostrar itens conciliados
+      </label>
+    </div>
 
-    <!-- Modo atual vindo do controller -->
-    <input type="hidden" id="modoServidor" th:value="${modo}"/>
+    <div style="width:100%;" th:switch="${modo}">
+      <!-- ================== DUAS COLUNAS ================== -->
+      <section th:case="'duascolunas'">
+        <div class="row cols-2">
+          <div class="card p-16">
+            <h3>Razão</h3>
+            <table class="table" id="tbl-razao">
+              <thead><tr><th>Operação</th><th>Data</th><th>Valor</th><th>Descrição</th><th class="muted">Estado</th></tr></thead>
+              <tbody>
+              <tr class="only" th:each="l : ${somRazao}">
+                <td><span class="badge" th:text="${l.tipo}">PAGAMENTO</span></td>
+                <td th:text="${#temporals.format(l.data,'dd/MM/yyyy')}">01/01/2025</td>
+                <td th:text="${#numbers.formatDecimal(l.valor,1,2,'POINT',2,'COMMA')}">0,00</td>
+                <td th:text="${l.descricao}">—</td>
+                <td class="muted">Somente no Razão</td>
+              </tr>
+              <tr class="ok" th:each="l : ${conc}" th:if="${l.origem == 'RAZAO'}">
+                <td><span class="badge" th:text="${l.tipo}">RECEBIMENTO</span></td>
+                <td th:text="${#temporals.format(l.data,'dd/MM/yyyy')}">01/01/2025</td>
+                <td th:text="${#numbers.formatDecimal(l.valor,1,2,'POINT',2,'COMMA')}">0,00</td>
+                <td th:text="${l.descricao}">—</td>
+                <td class="muted">OK</td>
+              </tr>
+              <tr class="div" th:each="l : ${diverg}" th:if="${l.origem == 'RAZAO'}">
+                <td><span class="badge" th:text="${l.tipo}">RECEBIMENTO</span></td>
+                <td th:text="${#temporals.format(l.data,'dd/MM/yyyy')}">01/01/2025</td>
+                <td th:text="${#numbers.formatDecimal(l.valor,1,2,'POINT',2,'COMMA')}">0,00</td>
+                <td th:text="${l.descricao}">—</td>
+                <td class="muted">Divergência</td>
+              </tr>
+              </tbody>
+            </table>
+          </div>
 
-    <!-- =================== DUAS COLUNAS =================== -->
-    <section id="view-duascolunas" style="display:none;">
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
-        <div th:replace="fragments/tabelas :: tabelaPadrao('Somente no Razão', ${resultado?.somenteNoRazao})"></div>
-        <div th:replace="fragments/tabelas :: tabelaPadrao('Somente no Extrato', ${resultado?.somenteNoExtrato})"></div>
-      </div>
-      <div style="margin-top:1rem;"
-           th:replace="fragments/tabelas :: tabelaDivergencias(${resultado?.divergencias})"></div>
-    </section>
-
-    <!-- =================== ABAS =================== -->
-    <section id="view-abas" style="display:none;">
-      <div class="card" style="padding:1rem;">
-        <div style="display:flex; gap:.5rem; margin-bottom:.75rem;">
-          <button class="btn tab-btn" data-tab="aba-razao">Razão</button>
-          <button class="btn ghost tab-btn" data-tab="aba-extrato">Extrato</button>
-          <button class="btn ghost tab-btn" data-tab="aba-div">Divergências</button>
+          <div class="card p-16">
+            <h3>Extrato</h3>
+            <table class="table" id="tbl-extrato">
+              <thead><tr><th>Operação</th><th>Data</th><th>Valor</th><th>Descrição</th><th class="muted">Estado</th></tr></thead>
+              <tbody>
+              <tr class="only" th:each="l : ${somExtrato}">
+                <td><span class="badge" th:text="${l.tipo}">RECEBIMENTO</span></td>
+                <td th:text="${#temporals.format(l.data,'dd/MM/yyyy')}">01/01/2025</td>
+                <td th:text="${#numbers.formatDecimal(l.valor,1,2,'POINT',2,'COMMA')}">0,00</td>
+                <td th:text="${l.descricao}">—</td>
+                <td class="muted">Somente no Extrato</td>
+              </tr>
+              <tr class="ok" th:each="l : ${conc}" th:if="${l.origem == 'EXTRATO'}">
+                <td><span class="badge" th:text="${l.tipo}">PAGAMENTO</span></td>
+                <td th:text="${#temporals.format(l.data,'dd/MM/yyyy')}">01/01/2025</td>
+                <td th:text="${#numbers.formatDecimal(l.valor,1,2,'POINT',2,'COMMA')}">0,00</td>
+                <td th:text="${l.descricao}">—</td>
+                <td class="muted">OK</td>
+              </tr>
+              <tr class="div" th:each="l : ${diverg}" th:if="${l.origem == 'EXTRATO'}">
+                <td><span class="badge" th:text="${l.tipo}">PAGAMENTO</span></td>
+                <td th:text="${#temporals.format(l.data,'dd/MM/yyyy')}">01/01/2025</td>
+                <td th:text="${#numbers.formatDecimal(l.valor,1,2,'POINT',2,'COMMA')}">0,00</td>
+                <td th:text="${l.descricao}">—</td>
+                <td class="muted">Divergência</td>
+              </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
-        <div id="aba-razao" class="tab-pane">
-          <div th:replace="fragments/tabelas :: tabelaPadrao('Somente no Razão', ${resultado?.somenteNoRazao})"></div>
+      </section>
+
+      <!-- ================== ABAS ================== -->
+      <section th:case="'abas'">
+        <div class="tabs mb-16" role="tablist">
+          <button class="tab" aria-selected="true" onclick="showTab('aba-razao')">Razão</button>
+          <button class="tab" aria-selected="false" onclick="showTab('aba-extrato')">Extrato</button>
+          <button class="tab" aria-selected="false" onclick="showTab('aba-diverg')">Divergências</button>
         </div>
-        <div id="aba-extrato" class="tab-pane" style="display:none;">
-          <div th:replace="fragments/tabelas :: tabelaPadrao('Somente no Extrato', ${resultado?.somenteNoExtrato})"></div>
+
+        <div id="aba-razao" class="card p-16">
+          <h3>Razão</h3>
+          <table class="table">
+            <thead><tr><th>Operação</th><th>Data</th><th>Valor</th><th>Descrição</th><th>Estado</th></tr></thead>
+            <tbody>
+            <tr class="only" th:each="l : ${somRazao}">
+              <td><span class="badge" th:text="${l.tipo}">—</span></td>
+              <td th:text="${#temporals.format(l.data,'dd/MM/yyyy')}">—</td>
+              <td th:text="${#numbers.formatDecimal(l.valor,1,2,'POINT',2,'COMMA')}">—</td>
+              <td th:text="${l.descricao}">—</td>
+              <td class="muted">Somente no Razão</td>
+            </tr>
+            <tr class="ok" th:each="l : ${conc}" th:if="${l.origem == 'RAZAO'}">
+              <td><span class="badge" th:text="${l.tipo}">—</span></td>
+              <td th:text="${#temporals.format(l.data,'dd/MM/yyyy')}">—</td>
+              <td th:text="${#numbers.formatDecimal(l.valor,1,2,'POINT',2,'COMMA')}">—</td>
+              <td th:text="${l.descricao}">—</td>
+              <td class="muted">OK</td>
+            </tr>
+            </tbody>
+          </table>
         </div>
-        <div id="aba-div" class="tab-pane" style="display:none;">
-          <div th:replace="fragments/tabelas :: tabelaDivergencias(${resultado?.divergencias})"></div>
+
+        <div id="aba-extrato" class="card p-16" style="display:none;">
+          <h3>Extrato</h3>
+          <table class="table">
+            <thead><tr><th>Operação</th><th>Data</th><th>Valor</th><th>Descrição</th><th>Estado</th></tr></thead>
+            <tbody>
+            <tr class="only" th:each="l : ${somExtrato}">
+              <td><span class="badge" th:text="${l.tipo}">—</span></td>
+              <td th:text="${#temporals.format(l.data,'dd/MM/yyyy')}">—</td>
+              <td th:text="${#numbers.formatDecimal(l.valor,1,2,'POINT',2,'COMMA')}">—</td>
+              <td th:text="${l.descricao}">—</td>
+              <td class="muted">Somente no Extrato</td>
+            </tr>
+            <tr class="ok" th:each="l : ${conc}" th:if="${l.origem == 'EXTRATO'}">
+              <td><span class="badge" th:text="${l.tipo}">—</span></td>
+              <td th:text="${#temporals.format(l.data,'dd/MM/yyyy')}">—</td>
+              <td th:text="${#numbers.formatDecimal(l.valor,1,2,'POINT',2,'COMMA')}">—</td>
+              <td th:text="${l.descricao}">—</td>
+              <td class="muted">OK</td>
+            </tr>
+            </tbody>
+          </table>
         </div>
-      </div>
-    </section>
 
-    <!-- =================== COMPARATIVO =================== -->
-    <section id="view-comparativo" style="display:none;">
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
-        <div th:replace="fragments/tabelas :: tabelaPadrao('Somente no Razão', ${resultado?.somenteNoRazao})"></div>
-        <div th:replace="fragments/tabelas :: tabelaPadrao('Somente no Extrato', ${resultado?.somenteNoExtrato})"></div>
-      </div>
-      <div style="margin-top:1rem;"
-           th:replace="fragments/tabelas :: tabelaDivergencias(${resultado?.divergencias})"></div>
-    </section>
+        <div id="aba-diverg" class="card p-16 mt-16" style="display:none;">
+          <h3>Divergências</h3>
+          <table class="table">
+            <thead><tr><th>Operação</th><th>Data</th><th>Valor</th><th>Descrição</th><th>Origem</th></tr></thead>
+            <tbody>
+            <tr class="div" th:each="l : ${diverg}">
+              <td><span class="badge" th:text="${l.tipo}">—</span></td>
+              <td th:text="${#temporals.format(l.data,'dd/MM/yyyy')}">—</td>
+              <td th:text="${#numbers.formatDecimal(l.valor,1,2,'POINT',2,'COMMA')}">—</td>
+              <td th:text="${l.descricao}">—</td>
+              <td th:text="${l.origem}">—</td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
 
-  </main>
+      <!-- ================== COMPARATIVO ================== -->
+      <section th:case="'comparativo'">
+        <div class="grid-cards">
+          <div class="card p-16 danger">
+            <h3>Somente no Razão (<span th:text="${qSomRazao}">0</span>)</h3>
+            <table class="table">
+              <thead><tr><th>Operação</th><th>Data</th><th>Valor</th><th>Descrição</th></tr></thead>
+              <tbody>
+              <tr th:each="l : ${somRazao}">
+                <td><span class="badge" th:text="${l.tipo}">—</span></td>
+                <td th:text="${#temporals.format(l.data,'dd/MM/yyyy')}">—</td>
+                <td th:text="${#numbers.formatDecimal(l.valor,1,2,'POINT',2,'COMMA')}">—</td>
+                <td th:text="${l.descricao}">—</td>
+              </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="card p-16 danger">
+            <h3>Somente no Extrato (<span th:text="${qSomExtrato}">0</span>)</h3>
+            <table class="table">
+              <thead><tr><th>Operação</th><th>Data</th><th>Valor</th><th>Descrição</th></tr></thead>
+              <tbody>
+              <tr th:each="l : ${somExtrato}">
+                <td><span class="badge" th:text="${l.tipo}">—</span></td>
+                <td th:text="${#temporals.format(l.data,'dd/MM/yyyy')}">—</td>
+                <td th:text="${#numbers.formatDecimal(l.valor,1,2,'POINT',2,'COMMA')}">—</td>
+                <td th:text="${l.descricao}">—</td>
+              </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
 
-  <script>
-    // Seleção de modo (garante que Abas/Comparativo SEMPRE mostram os mesmos dados)
-    (function(){
-      const serverMode = (document.getElementById('modoServidor')?.value || 'duascolunas');
-      const views = {
-        duascolunas: document.getElementById('view-duascolunas'),
-        abas:        document.getElementById('view-abas'),
-        comparativo: document.getElementById('view-comparativo')
-      };
+        <div class="card p-16 mt-16" th:if="${qDiverg > 0}">
+          <h3>Divergências (<span th:text="${qDiverg}">0</span>)</h3>
+          <table class="table">
+            <thead><tr><th>Operação</th><th>Data</th><th>Valor</th><th>Descrição</th><th>Origem</th></tr></thead>
+            <tbody>
+            <tr class="div" th:each="l : ${diverg}">
+              <td><span class="badge" th:text="${l.tipo}">—</span></td>
+              <td th:text="${#temporals.format(l.data,'dd/MM/yyyy')}">—</td>
+              <td th:text="${#numbers.formatDecimal(l.valor,1,2,'POINT',2,'COMMA')}">—</td>
+              <td th:text="${l.descricao}">—</td>
+              <td th:text="${l.origem}">—</td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
 
-      function setMode(m){
-        for(const k in views){ views[k].style.display = (k===m) ? 'block' : 'none'; }
-        // estiliza botões
-        document.querySelectorAll('[data-modo]').forEach(b=>{
-          if(b.dataset.modo===m){ b.classList.remove('ghost'); }
-          else{ b.classList.add('ghost'); }
-        });
-      }
+      <section th:case="*">
+        <p class="muted">Modo não informado. Use <code>duascolunas</code>, <code>abas</code> ou <code>comparativo</code>.</p>
+      </section>
+    </div>
+  </div>
+</div>
 
-      setMode(serverMode);
+<script>
+  // Mostrar/ocultar conciliados
+  const toggle = document.getElementById('toggle-ok');
+  function applyToggle(){
+    const show = toggle && toggle.checked;
+    document.querySelectorAll('tr.ok').forEach(tr => tr.style.display = show ? '' : 'none');
+  }
+  if(toggle){ toggle.addEventListener('change', applyToggle); applyToggle(); }
 
-      document.querySelectorAll('[data-modo]').forEach(btn=>{
-        btn.addEventListener('click', ()=> setMode(btn.dataset.modo));
-      });
-
-      // tabs
-      document.querySelectorAll('.tab-btn').forEach(btn=>{
-        btn.addEventListener('click', ()=>{
-          const tab = btn.dataset.tab;
-          document.querySelectorAll('.tab-pane').forEach(p=>p.style.display='none');
-          document.getElementById(tab).style.display = 'block';
-          document.querySelectorAll('.tab-btn').forEach(b=>b.classList.add('ghost'));
-          btn.classList.remove('ghost');
-        });
-      });
-    })();
-  </script>
+  // Abas
+  function showTab(id){
+    ['aba-razao','aba-extrato','aba-diverg'].forEach(x=>{
+      const el = document.getElementById(x);
+      if(el) el.style.display = (x===id)?'block':'none';
+    });
+    document.querySelectorAll('.tab').forEach(btn=>{
+      btn.setAttribute('aria-selected', btn.getAttribute('onclick').includes(id) ? 'true' : 'false');
+    });
+  }
+</script>
 </body>
 </html>

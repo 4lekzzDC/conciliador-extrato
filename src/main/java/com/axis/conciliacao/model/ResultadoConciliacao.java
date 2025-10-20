@@ -5,38 +5,17 @@ import java.util.List;
 
 public class ResultadoConciliacao {
 
-    private List<Lancamento> somenteNoRazao;
-    private List<Lancamento> somenteNoExtrato;
-    private List<Lancamento> conciliados;
-    private List<Lancamento> divergencias;
-
-    public ResultadoConciliacao() {
-        this.somenteNoRazao = new ArrayList<>();
-        this.somenteNoExtrato = new ArrayList<>();
-        this.conciliados = new ArrayList<>();
-        this.divergencias = new ArrayList<>();
-    }
-
-    public ResultadoConciliacao(List<Lancamento> somenteNoRazao,
-                                List<Lancamento> somenteNoExtrato,
-                                List<Lancamento> conciliados,
-                                List<Lancamento> divergencias) {
-        this.somenteNoRazao   = nonNull(somenteNoRazao);
-        this.somenteNoExtrato = nonNull(somenteNoExtrato);
-        this.conciliados      = nonNull(conciliados);
-        this.divergencias     = nonNull(divergencias);
-    }
-
-    private static <T> List<T> nonNull(List<T> in) {
-        return in == null ? new ArrayList<>() : in;
-    }
+    private List<Lancamento> somenteNoRazao = new ArrayList<>();
+    private List<Lancamento> somenteNoExtrato = new ArrayList<>();
+    private List<Lancamento> conciliados = new ArrayList<>();
+    private List<Lancamento> divergencias = new ArrayList<>();
 
     public List<Lancamento> getSomenteNoRazao() {
         return somenteNoRazao;
     }
 
     public void setSomenteNoRazao(List<Lancamento> somenteNoRazao) {
-        this.somenteNoRazao = nonNull(somenteNoRazao);
+        this.somenteNoRazao = (somenteNoRazao != null) ? somenteNoRazao : new ArrayList<>();
     }
 
     public List<Lancamento> getSomenteNoExtrato() {
@@ -44,7 +23,7 @@ public class ResultadoConciliacao {
     }
 
     public void setSomenteNoExtrato(List<Lancamento> somenteNoExtrato) {
-        this.somenteNoExtrato = nonNull(somenteNoExtrato);
+        this.somenteNoExtrato = (somenteNoExtrato != null) ? somenteNoExtrato : new ArrayList<>();
     }
 
     public List<Lancamento> getConciliados() {
@@ -52,7 +31,7 @@ public class ResultadoConciliacao {
     }
 
     public void setConciliados(List<Lancamento> conciliados) {
-        this.conciliados = nonNull(conciliados);
+        this.conciliados = (conciliados != null) ? conciliados : new ArrayList<>();
     }
 
     public List<Lancamento> getDivergencias() {
@@ -60,6 +39,6 @@ public class ResultadoConciliacao {
     }
 
     public void setDivergencias(List<Lancamento> divergencias) {
-        this.divergencias = nonNull(divergencias);
+        this.divergencias = (divergencias != null) ? divergencias : new ArrayList<>();
     }
 }

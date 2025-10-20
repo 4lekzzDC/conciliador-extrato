@@ -1,11 +1,5 @@
 com\axis\conciliacao\utils\ExcelReader$1.class
 com\axis\conciliacao\config\ConciliacaoConfig.class
-com\axis\conciliacao\model\ResultadoConciliacao.class
-com\axis\conciliacao\service\ConciliacaoService$KeyFunc.class
-com\axis\conciliacao\controller\UiController.class
-com\axis\conciliacao\service\ConciliacaoService$DivergenceAnnotator.class
 com\axis\conciliacao\model\Lancamento.class
-com\axis\conciliacao\service\ConciliacaoService$PairingResult.class
 com\axis\conciliacao\ConciliacaoApplication.class
 com\axis\conciliacao\utils\ExcelReader.class
-com\axis\conciliacao\service\ConciliacaoService.class

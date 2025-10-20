@@ -1,0 +1,26 @@
+# Maven
+target/
+!.mvn/wrapper/maven-wrapper.jar
+.mvn/timing.properties
+
+# IDEs
+.idea/
+.vscode/
+*.iml
+*.class
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+
+# Sistema operacional
+*.swp
+*.swo
+
+# Arquivos temporários
+*.tmp
+*.bak

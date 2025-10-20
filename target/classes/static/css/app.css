@@ -1,0 +1,288 @@
+:root {
+  --bg: #0b0f1a;
+  --bg-2: #121826;
+  --bg-3: #1a2338;
+  --txt: #e8edf5;
+  --muted: #9caac2;
+  --primary: #5b7cfa;
+  --primary-2: #3d5cf5;
+  --border: rgba(255,255,255,.08);
+  --radius: 16px;
+  --shadow: 0 10px 30px rgba(0,0,0,.35);
+  --danger: #ff6b6b;
+  --success: #2ecc71;
+  --warning: #f7b731;
+}
+
+/* -------------------------------------------------------
+   RESET / BASE
+------------------------------------------------------- */
+* {
+  box-sizing: border-box;
+}
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: "Inter", "Segoe UI", Roboto, Arial, sans-serif;
+  background: var(--bg);
+  color: var(--txt);
+  line-height: 1.6;
+}
+
+.app-gradient {
+  background: radial-gradient(1000px 600px at 20% 0%, #16224a, var(--bg));
+}
+
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+h1, h2, h3 {
+  font-weight: 600;
+  color: var(--txt);
+}
+
+/* -------------------------------------------------------
+   HEADER / FOOTER
+------------------------------------------------------- */
+.topbar {
+  background: rgba(18,24,40,.8);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.topbar .brand {
+  font-size: 1.6rem;
+  font-weight: 700;
+  padding: 1rem 0;
+  margin: 0;
+}
+
+.footer {
+  text-align: center;
+  border-top: 1px solid var(--border);
+  margin-top: 3rem;
+  padding: 1.5rem 0;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+/* -------------------------------------------------------
+   PANELS / CARDS
+------------------------------------------------------- */
+.panel {
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.panel-glass {
+  background: linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.00));
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.panel-header {
+  padding: 0.9rem 1rem;
+  border-bottom: 1px solid var(--border);
+  font-weight: 600;
+}
+
+.panel-body {
+  padding: 1.2rem;
+}
+
+/* -------------------------------------------------------
+   BUTTONS
+------------------------------------------------------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 500;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  border: none;
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: #fff;
+  padding: 0.8rem 1.8rem;
+  box-shadow: 0 4px 12px rgba(91,124,250,.3);
+}
+.btn-primary:hover {
+  background: var(--primary-2);
+  box-shadow: 0 6px 16px rgba(91,124,250,.4);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--txt);
+  border: 1px solid var(--border);
+  padding: 0.7rem 1.5rem;
+}
+.btn-ghost:hover {
+  background: rgba(255,255,255,.05);
+}
+
+/* -------------------------------------------------------
+   TABLES
+------------------------------------------------------- */
+.tbl {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 8px;
+}
+.tbl th {
+  text-align: left;
+  color: var(--muted);
+  font-weight: 500;
+  padding: 10px 12px;
+}
+.tbl td {
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  padding: 10px 12px;
+}
+.tbl th.num, .tbl td.num {
+  text-align: right;
+}
+
+/* -------------------------------------------------------
+   CHIPS / BADGES
+------------------------------------------------------- */
+.badge {
+  display: inline-block;
+  padding: 0.3rem 0.6rem;
+  border-radius: 8px;
+  background: rgba(255,255,255,.05);
+  border: 1px solid var(--border);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  height: 28px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--bg-3);
+  font-size: 0.85rem;
+}
+.chip-danger { border-color: rgba(255,107,107,.5); color: #ffbebe; }
+.chip-warning { border-color: rgba(247,183,49,.5); color: #ffe6b0; }
+.chip-success { border-color: rgba(46,204,113,.5); color: #c8f6d7; }
+
+/* -------------------------------------------------------
+   SEGMENTED CONTROL / CHECKBOX
+------------------------------------------------------- */
+.segmented {
+  display: inline-grid;
+  grid-template-columns: repeat(3, 1fr);
+  border-radius: 999px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: var(--bg-3);
+}
+.segmented input {
+  display: none;
+}
+.segmented label {
+  padding: 0.6rem 1rem;
+  text-align: center;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.segmented input:checked + label {
+  background: var(--primary);
+  color: #fff;
+}
+
+.check input {
+  accent-color: var(--primary);
+  margin-right: 0.4rem;
+}
+
+/* -------------------------------------------------------
+   GRID / LAYOUT HELPERS
+------------------------------------------------------- */
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+}
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+.mt-3 { margin-top: 1rem; }
+.mt-4 { margin-top: 1.5rem; }
+.mt-5 { margin-top: 2rem; }
+.py-5 { padding: 3rem 0; }
+
+/* -------------------------------------------------------
+   VIEWS / TABS
+------------------------------------------------------- */
+.view { display: none; }
+.view.is-active { display: block; }
+
+.tabs {
+  display: flex;
+  gap: 8px;
+  border-bottom: 1px solid var(--border);
+}
+.tab {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-bottom: none;
+  border-radius: 12px 12px 0 0;
+  padding: 0.6rem 1rem;
+  cursor: pointer;
+}
+.tab.is-active {
+  background: var(--bg-2);
+}
+
+.tab-panels {
+  border: 1px solid var(--border);
+  border-top: none;
+  border-radius: 0 12px 12px 12px;
+  padding: 1rem;
+  background: var(--bg-2);
+}
+.tab-panel { display: none; }
+.tab-panel.is-active { display: block; }
+
+/* -------------------------------------------------------
+   DROPZONES (override visual)
+------------------------------------------------------- */
+.dropzone {
+  transition: background 0.25s, border 0.25s;
+}
+.dropzone.is-hover {
+  background: rgba(91,124,250,.08);
+  border-color: rgba(91,124,250,.6);
+}
+
+@media (max-width: 860px) {
+  .grid-2 {
+    grid-template-columns: 1fr;
+  }
+}

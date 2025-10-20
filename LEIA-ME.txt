@@ -1,0 +1,21 @@
+PASSO A PASSO (build estável com JDK 17)
+
+1) Instale o JDK 17 (Temurin LTS):
+   https://adoptium.net/temurin/releases/?version=17
+
+2) Copie 'pom.xml' para C:\conciliacao2\pom.xml
+   (este pom usa o maven-compiler-plugin 3.10.1 + javac do JDK 17)
+
+3) Coloque 'toolchains.xml' em:
+   C:\Users\alexa\.m2\toolchains.xml
+   e ajuste <jdkHome> para a pasta onde o JDK 17 foi instalado
+   (ex.: C:\Program Files\Eclipse Adoptium\jdk-17.0.11)
+
+4) Rode:
+   cd C:\conciliacao2
+   mvn -DskipTests clean package
+   java -jar target\conciliacao-financeira-0.0.1-SNAPSHOT.jar
+
+Obs: o nome 'conciliacao-financeira' vem do <artifactId> do pom.xml,
+por isso o jar gerado tem esse nome. Se quiser mudar o nome do arquivo,
+altere o <artifactId> no pom e gere novamente.
